@@ -27,9 +27,9 @@ export const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) 
     try {
       const hDate = new HDate(date);
       return {
-        hebrew: hDate.toString('h'),
+        hebrew: hDate.toString(),
         day: hDate.getDate(),
-        month: hDate.getMonthName('h'),
+        month: hDate.getMonthName(),
         year: hDate.getFullYear()
       };
     } catch (error) {

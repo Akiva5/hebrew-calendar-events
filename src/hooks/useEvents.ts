@@ -15,6 +15,9 @@ export interface Event {
   date: string;
   isRecurring: boolean;
   hebrewDate?: HebrewDate | null;
+  gregorianRecurrence?: boolean;
+  hebrewRecurrence?: boolean;
+  linkDates?: boolean;
   createdAt: string;
 }
 

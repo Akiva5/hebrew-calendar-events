@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Calendar } from 'lucide-react';
+import { Plus, Trash2, Calendar, Upload, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { HDate } from '@hebcal/core';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from '@/hooks/use-toast';
+import { CSVImporter } from './CSVImporter';
 
 interface EventManagerProps {
   selectedDate: Date;
@@ -19,12 +20,15 @@ interface EventManagerProps {
 export const EventManager = ({ selectedDate }: EventManagerProps) => {
   const { events, addEvent, removeEvent } = useEvents();
   const [isCreating, setIsCreating] = useState(false);
+  const [showCSVImporter, setShowCSVImporter] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
     date: format(selectedDate, 'yyyy-MM-dd'),
     isRecurring: false,
-    hebrewRecurrence: false
+    hebrewRecurrence: false,
+    gregorianRecurrence: false,
+    linkDates: false
   });
 
   const getHebrewDate = (date: Date) => {
@@ -32,9 +36,9 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
       const hDate = new HDate(date);
       return {
         day: hDate.getDate(),
-        month: hDate.getMonthName('h'),
+        month: hDate.getMonthName(),
         year: hDate.getFullYear(),
-        toString: () => hDate.toString('h')
+        toString: () => hDate.toString()
       };
     } catch (error) {
       console.error('Error getting Hebrew date:', error);
@@ -57,7 +61,7 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
     const eventDate = new Date(newEvent.date);
     let hebrewDate = null;
     
-    if (newEvent.isRecurring && newEvent.hebrewRecurrence) {
+    if (newEvent.isRecurring && (newEvent.hebrewRecurrence || newEvent.linkDates)) {
       hebrewDate = getHebrewDate(eventDate);
       if (!hebrewDate) {
         toast({
@@ -76,14 +80,24 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
       date: newEvent.date,
       isRecurring: newEvent.isRecurring,
       hebrewDate: hebrewDate,
+      gregorianRecurrence: newEvent.gregorianRecurrence,
+      hebrewRecurrence: newEvent.hebrewRecurrence,
+      linkDates: newEvent.linkDates,
       createdAt: new Date().toISOString()
     };
 
     addEvent(event);
     
+    let recurrenceType = 'one-time';
+    if (newEvent.isRecurring) {
+      if (newEvent.linkDates) recurrenceType = 'both calendars (linked)';
+      else if (newEvent.hebrewRecurrence) recurrenceType = 'Hebrew calendar only';
+      else if (newEvent.gregorianRecurrence) recurrenceType = 'Gregorian calendar only';
+    }
+    
     toast({
       title: "Event Created",
-      description: `${newEvent.title} has been added to your calendar`,
+      description: `${newEvent.title} has been added as ${recurrenceType} event`,
     });
 
     setNewEvent({
@@ -91,7 +105,9 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
       description: '',
       date: format(selectedDate, 'yyyy-MM-dd'),
       isRecurring: false,
-      hebrewRecurrence: false
+      hebrewRecurrence: false,
+      gregorianRecurrence: false,
+      linkDates: false
     });
     setIsCreating(false);
   };
@@ -104,18 +120,58 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
     });
   };
 
+  const downloadSampleCSV = () => {
+    const sampleData = [
+      ['Title', 'Description', 'Date (YYYY-MM-DD)', 'Is Recurring (true/false)', 'Hebrew Recurrence (true/false)', 'Gregorian Recurrence (true/false)', 'Link Dates (true/false)'],
+      ['Dad Birthday', 'Happy birthday dad!', '2024-08-15', 'true', 'true', 'false', 'false'],
+      ['Anniversary', 'Wedding anniversary', '2024-06-20', 'true', 'false', 'true', 'false'],
+      ['Linked Event', 'Event on both calendars', '2024-09-10', 'true', 'true', 'true', 'true']
+    ];
+    
+    const csvContent = sampleData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_events.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-blue-900">Event Management</h2>
-        <Button 
-          onClick={() => setIsCreating(!isCreating)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Event
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowCSVImporter(!showCSVImporter)}
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Import CSV
+          </Button>
+          <Button 
+            onClick={downloadSampleCSV}
+            variant="outline"
+            className="border-purple-600 text-purple-600 hover:bg-purple-50"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Sample CSV
+          </Button>
+          <Button 
+            onClick={() => setIsCreating(!isCreating)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
       </div>
+
+      {showCSVImporter && (
+        <CSVImporter onClose={() => setShowCSVImporter(false)} />
+      )}
 
       {isCreating && (
         <Card className="border-blue-200">
@@ -168,22 +224,55 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
                     id="recurring"
                     checked={newEvent.isRecurring}
                     onCheckedChange={(checked) => 
-                      setNewEvent({ ...newEvent, isRecurring: checked, hebrewRecurrence: checked ? newEvent.hebrewRecurrence : false })
+                      setNewEvent({ 
+                        ...newEvent, 
+                        isRecurring: checked, 
+                        hebrewRecurrence: checked ? newEvent.hebrewRecurrence : false,
+                        gregorianRecurrence: checked ? newEvent.gregorianRecurrence : false,
+                        linkDates: checked ? newEvent.linkDates : false
+                      })
                     }
                   />
                   <Label htmlFor="recurring">Recurring Event</Label>
                 </div>
 
                 {newEvent.isRecurring && (
-                  <div className="flex items-center space-x-2 ml-6">
-                    <Switch
-                      id="hebrew-recurrence"
-                      checked={newEvent.hebrewRecurrence}
-                      onCheckedChange={(checked) => 
-                        setNewEvent({ ...newEvent, hebrewRecurrence: checked })
-                      }
-                    />
-                    <Label htmlFor="hebrew-recurrence">Recur on Hebrew Calendar Date</Label>
+                  <div className="ml-6 space-y-3 border-l-2 border-blue-200 pl-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="hebrew-recurrence"
+                        checked={newEvent.hebrewRecurrence}
+                        onCheckedChange={(checked) => 
+                          setNewEvent({ ...newEvent, hebrewRecurrence: checked })
+                        }
+                      />
+                      <Label htmlFor="hebrew-recurrence">Recur on Hebrew Calendar Date</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="gregorian-recurrence"
+                        checked={newEvent.gregorianRecurrence}
+                        onCheckedChange={(checked) => 
+                          setNewEvent({ ...newEvent, gregorianRecurrence: checked })
+                        }
+                      />
+                      <Label htmlFor="gregorian-recurrence">Recur on Gregorian Calendar Date</Label>
+                    </div>
+
+                    {(newEvent.hebrewRecurrence && newEvent.gregorianRecurrence) && (
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="link-dates"
+                          checked={newEvent.linkDates}
+                          onCheckedChange={(checked) => 
+                            setNewEvent({ ...newEvent, linkDates: checked })
+                          }
+                        />
+                        <Label htmlFor="link-dates">Link Hebrew and Gregorian recurrences</Label>
+                        <span className="text-xs text-gray-500">(Show as one event instead of two)</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -210,7 +299,7 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
         <h3 className="text-lg font-semibold text-blue-900">Your Events</h3>
         {events.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
-            No events created yet. Click "Add Event" to get started!
+            No events created yet. Click "Add Event" or "Import CSV" to get started!
           </p>
         ) : (
           <div className="grid gap-4">
@@ -235,7 +324,9 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
                         )}
                         {event.isRecurring && (
                           <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                            {event.hebrewDate ? 'Hebrew Recurring' : 'Recurring'}
+                            {event.linkDates ? 'Linked Recurring' : 
+                             event.hebrewRecurrence && event.gregorianRecurrence ? 'Both Calendars' :
+                             event.hebrewRecurrence ? 'Hebrew Recurring' : 'Gregorian Recurring'}
                           </span>
                         )}
                       </div>
