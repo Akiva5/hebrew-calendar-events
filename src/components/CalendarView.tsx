@@ -45,10 +45,11 @@ export const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) 
 
   const getJewishHolidays = (date: Date) => {
     try {
-      const location = new Location('Jerusalem', 31.7683, 35.2137, 'Asia/Jerusalem', 'IL');
+      const location = new Location(31.7683, 35.2137, true, 'Asia/Jerusalem');
+      const hDate = new HDate(date);
       const holidays = HebrewCalendar.calendar({
-        start: date,
-        end: date,
+        start: hDate,
+        end: hDate,
         location,
         il: true,
         sedrot: false,
