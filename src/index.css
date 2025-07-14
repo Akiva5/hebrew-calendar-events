@@ -100,4 +100,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* RTL support for Hebrew text */
+  [dir="rtl"] {
+    text-align: right;
+  }
+  
+  /* Hebrew font support */
+  .hebrew-text {
+    font-family: 'Noto Sans Hebrew', 'Arial Hebrew', 'Times New Roman', serif;
+    direction: rtl;
+    text-align: right;
+  }
 }

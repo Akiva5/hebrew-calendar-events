@@ -6,12 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Calendar, Upload, Download } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Trash2, Calendar, Upload, Download, CalendarDays, Languages } from 'lucide-react';
 import { format } from 'date-fns';
 import { HDate } from '@hebcal/core';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from '@/hooks/use-toast';
 import { CSVImporter } from './CSVImporter';
+import { HebrewCalendar } from './HebrewCalendar';
+import { getHebrewDateInfo, formatHebrewDate } from '@/utils/hebrewFormatting';
 
 interface EventManagerProps {
   selectedDate: Date;
@@ -21,6 +25,9 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
   const { events, addEvent, removeEvent } = useEvents();
   const [isCreating, setIsCreating] = useState(false);
   const [showCSVImporter, setShowCSVImporter] = useState(false);
+  const [showHebrewText, setShowHebrewText] = useState(false);
+  const [dateSelectionMode, setDateSelectionMode] = useState<'gregorian' | 'hebrew'>('gregorian');
+  const [showCalendarPopover, setShowCalendarPopover] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -31,19 +38,13 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
     linkDates: false
   });
 
-  const getHebrewDate = (date: Date) => {
-    try {
-      const hDate = new HDate(date);
-      return {
-        day: hDate.getDate(),
-        month: hDate.getMonthName(),
-        year: hDate.getFullYear(),
-        toString: () => hDate.toString()
-      };
-    } catch (error) {
-      console.error('Error getting Hebrew date:', error);
-      return null;
-    }
+  const handleCalendarDateSelect = (date: Date) => {
+    setNewEvent({ ...newEvent, date: format(date, 'yyyy-MM-dd') });
+    setShowCalendarPopover(false);
+  };
+
+  const handleDateInputChange = (dateString: string) => {
+    setNewEvent({ ...newEvent, date: dateString });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -62,7 +63,7 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
     let hebrewDate = null;
     
     if (newEvent.isRecurring && (newEvent.hebrewRecurrence || newEvent.linkDates)) {
-      hebrewDate = getHebrewDate(eventDate);
+      hebrewDate = getHebrewDateInfo(eventDate);
       if (!hebrewDate) {
         toast({
           title: "Error",
@@ -203,18 +204,71 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
               </div>
 
               <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={newEvent.date}
-                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                  className="mt-1"
-                />
+                <Label htmlFor="date">Date Selection</Label>
+                
+                <Tabs value={dateSelectionMode} onValueChange={(value) => setDateSelectionMode(value as 'gregorian' | 'hebrew')} className="mt-2">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="gregorian">Gregorian Date</TabsTrigger>
+                    <TabsTrigger value="hebrew">Hebrew Date</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="gregorian" className="space-y-2">
+                    <Input
+                      id="date"
+                      type="date"
+                      value={newEvent.date}
+                      onChange={(e) => handleDateInputChange(e.target.value)}
+                      className="w-full"
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="hebrew" className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        type="date"
+                        value={newEvent.date}
+                        onChange={(e) => handleDateInputChange(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Popover open={showCalendarPopover} onOpenChange={setShowCalendarPopover}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="px-3">
+                            <CalendarDays className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <HebrewCalendar
+                            selectedDate={newEvent.date ? new Date(newEvent.date) : new Date()}
+                            onDateSelect={handleCalendarDateSelect}
+                            showHebrewText={showHebrewText}
+                            onToggleLanguage={() => setShowHebrewText(!showHebrewText)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
                 {newEvent.date && (
-                  <p className="text-sm text-blue-600 mt-1">
-                    Hebrew Date: {getHebrewDate(new Date(newEvent.date))?.toString()}
-                  </p>
+                  <div className="mt-2 p-2 bg-muted rounded-md text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Hebrew Date:</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowHebrewText(!showHebrewText)}
+                        className="h-auto p-1"
+                      >
+                        <Languages className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className={`font-medium ${showHebrewText ? 'text-right' : ''}`} dir={showHebrewText ? 'rtl' : 'ltr'}>
+                      {showHebrewText 
+                        ? formatHebrewDate(new Date(newEvent.date), true)
+                        : getHebrewDateInfo(new Date(newEvent.date))?.toString()
+                      }
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -318,8 +372,11 @@ export const EventManager = ({ selectedDate }: EventManagerProps) => {
                           {format(new Date(event.date), 'MMM d, yyyy')}
                         </span>
                         {event.hebrewDate && (
-                          <span className="text-blue-600">
-                            Hebrew: {event.hebrewDate.day} {event.hebrewDate.month}
+                          <span className="text-blue-600" dir={showHebrewText ? 'rtl' : 'ltr'}>
+                            Hebrew: {showHebrewText 
+                              ? formatHebrewDate(new Date(event.date), true)
+                              : `${event.hebrewDate.day} ${event.hebrewDate.month}`
+                            }
                           </span>
                         )}
                         {event.isRecurring && (
