@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Hebrew Anniversaries Sync</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1, h2 {
+        color: #2c3e50;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      input[type="text"], select, input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 15px;
+        padding: 10px 15px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      button:disabled {
+        background-color: #95a5a6;
+      }
+      .entries-list {
+        list-style-type: none;
+        padding: 0;
+      }
+      .entries-list li {
+        background: #ecf0f1;
+        margin-top: 5px;
+        padding: 10px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .settings-section {
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+        margin-top: 20px;
+      }
+      #status {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #27ae60;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Hebrew Anniversaries Sync</h1>
+      <p>Add Hebrew Birthdays and Yahrzeits to automatically sync with your Google Calendar.</p>
+
+      <form id="addForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" required placeholder="e.g., John Doe">
+
+        <label for="type">Type</label>
+        <select id="type">
+          <option value="Birthday">Birthday</option>
+          <option value="Yahrzeit">Yahrzeit</option>
+        </select>
+
+        <label for="month">Hebrew Month</label>
+        <select id="month">
+          <option value="Nisan">Nisan</option>
+          <option value="Iyyar">Iyyar</option>
+          <option value="Sivan">Sivan</option>
+          <option value="Tamuz">Tamuz</option>
+          <option value="Av">Av</option>
+          <option value="Elul">Elul</option>
+          <option value="Tishrei">Tishrei</option>
+          <option value="Cheshvan">Cheshvan</option>
+          <option value="Kislev">Kislev</option>
+          <option value="Tevet">Tevet</option>
+          <option value="Sh'vat">Sh'vat</option>
+          <option value="Adar I">Adar I</option>
+          <option value="Adar II">Adar II</option>
+          <option value="Adar">Adar (Regular year)</option>
+        </select>
+
+        <label for="day">Hebrew Day (1-30)</label>
+        <input type="number" id="day" min="1" max="30" required>
+
+        <button type="submit" id="addBtn">Add & Sync</button>
+      </form>
+
+      <div id="status"></div>
+
+      <div class="settings-section">
+        <h2>Settings</h2>
+        <label for="horizon">Sync Horizon (Years)</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="number" id="horizon" min="1" max="10" style="width: 80px;">
+          <button type="button" id="updateHorizonBtn">Save Settings</button>
+        </div>
+        <p style="font-size: 0.9em; color: #7f8c8d;">The number of future years to create calendar events for (default: 3).</p>
+      </div>
+
+      <div class="settings-section">
+        <h2>Current Entries</h2>
+        <ul id="entriesList" class="entries-list">
+          <li>Loading...</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      function loadEntries() {
+        google.script.run.withSuccessHandler(function(entries) {
+          var list = document.getElementById('entriesList');
+          list.innerHTML = '';
+          if (entries.length === 0) {
+            list.innerHTML = '<li>No entries found.</li>';
+            return;
+          }
+          entries.forEach(function(entry) {
+            var li = document.createElement('li');
+            li.innerHTML = `<span><b>${entry.name}</b> (${entry.type})</span> <span>${entry.day} ${entry.month}</span>`;
+            list.appendChild(li);
+          });
+        }).getEntries();
+      }
+
+      function loadSettings() {
+        google.script.run.withSuccessHandler(function(horizon) {
+          document.getElementById('horizon').value = horizon;
+        }).getSyncHorizon();
+      }
+
+      document.getElementById('addForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('addBtn');
+        btn.disabled = true;
+        btn.innerText = 'Adding...';
+
+        var entry = {
+          name: document.getElementById('name').value,
+          type: document.getElementById('type').value,
+          month: document.getElementById('month').value,
+          day: document.getElementById('day').value
+        };
+
+        google.script.run.withSuccessHandler(function() {
+          document.getElementById('addForm').reset();
+          btn.disabled = false;
+          btn.innerText = 'Add & Sync';
+          document.getElementById('status').innerText = 'Entry added and sync started!';
+          setTimeout(() => document.getElementById('status').innerText = '', 3000);
+          loadEntries();
+        }).withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerText = 'Add & Sync';
+          alert('Error: ' + err.message);
+        }).addEntry(entry);
+      });
+
+      document.getElementById('updateHorizonBtn').addEventListener('click', function() {
+        var btn = document.getElementById('updateHorizonBtn');
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+        var horizon = document.getElementById('horizon').value;
+
+        google.script.run.withSuccessHandler(function() {
+          btn.disabled = false;
+          btn.innerText = 'Save Settings';
+          document.getElementById('status').innerText = 'Settings saved and sync started!';
+          setTimeout(() => document.getElementById('status').innerText = '', 3000);
+        }).updateSyncHorizon(horizon);
+      });
+
+      // Init
+      loadEntries();
+      loadSettings();
+    </script>
+  </body>
+</html>
