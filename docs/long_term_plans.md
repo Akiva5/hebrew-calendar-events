@@ -11,7 +11,7 @@ As this project evolves, several improvements and architectural changes are prop
 - **Future State**: Convert the UI from raw HTML into Google Workspace Card Service components and deploy as a Google Calendar Add-on. This allows users to add anniversaries directly from a sidebar while viewing their calendar, deeply integrating the experience.
 
 ### 3. Primary Calendar Integration
-- **Current State**: The script creates and writes to a separate, dedicated "Hebrew Anniversaries" calendar. This is safer initially to avoid cluttering the user's main calendar.
+- **Current State**: The script creates and writes to a separate, dedicated "Hebrew Calendar Events" calendar. This is safer initially to avoid cluttering the user's main calendar.
 - **Future State**: Provide a settings toggle in the UI that allows users to inject these events directly into their Primary calendar, or select an existing calendar of their choosing from a dropdown list.
 
 ### 4. Advanced Reminders & Notifications

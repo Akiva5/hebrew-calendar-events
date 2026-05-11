@@ -2,7 +2,7 @@
 <html>
   <head>
     <base target="_top">
-    <title>Hebrew Anniversaries Sync</title>
+    <title>Hebrew Calendar Events Sync</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -74,12 +74,15 @@
         font-weight: bold;
         color: #27ae60;
       }
+      #status.has-errors {
+        color: #c0392b;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Hebrew Anniversaries Sync</h1>
-      <p>Add Hebrew Birthdays and Yahrzeits to automatically sync with your Google Calendar.</p>
+      <h1>Hebrew Calendar Events Sync</h1>
+      <p>Add Hebrew Birthdays and Yahrzeits to automatically sync with your dedicated Hebrew Calendar Events calendar.</p>
 
       <form id="addForm">
         <label for="name">Name</label>
@@ -146,7 +149,12 @@
           }
           entries.forEach(function(entry) {
             var li = document.createElement('li');
-            li.innerHTML = `<span><b>${entry.name}</b> (${entry.type})</span> <span>${entry.day} ${entry.month}</span>`;
+            var name = document.createElement('span');
+            var date = document.createElement('span');
+            name.textContent = entry.name + ' (' + entry.type + ')';
+            date.textContent = entry.day + ' ' + entry.month;
+            li.appendChild(name);
+            li.appendChild(date);
             list.appendChild(li);
           });
         }).getEntries();
@@ -156,6 +164,30 @@
         google.script.run.withSuccessHandler(function(horizon) {
           document.getElementById('horizon').value = horizon;
         }).getSyncHorizon();
+      }
+
+      function renderSyncResult(result, successPrefix) {
+        var status = document.getElementById('status');
+        var calendarName = result && result.calendarName ? result.calendarName : 'Hebrew Calendar Events';
+        var created = result && typeof result.eventsCreated === 'number' ? result.eventsCreated : 0;
+        var skipped = result && typeof result.eventsSkipped === 'number' ? result.eventsSkipped : 0;
+        var errors = result && result.errors ? result.errors : [];
+
+        status.classList.toggle('has-errors', errors.length > 0);
+
+        if (errors.length > 0) {
+          status.innerText = successPrefix + ' Some sync items need attention: ' + errors.join(' ');
+          return;
+        }
+
+        status.innerText = successPrefix + ' Synced to "' + calendarName + '": ' + created + ' created, ' + skipped + ' already existed.';
+        setTimeout(() => status.innerText = '', 5000);
+      }
+
+      function renderError(message) {
+        var status = document.getElementById('status');
+        status.classList.add('has-errors');
+        status.innerText = message;
       }
 
       document.getElementById('addForm').addEventListener('submit', function(e) {
@@ -171,17 +203,16 @@
           day: document.getElementById('day').value
         };
 
-        google.script.run.withSuccessHandler(function() {
+        google.script.run.withSuccessHandler(function(result) {
           document.getElementById('addForm').reset();
           btn.disabled = false;
           btn.innerText = 'Add & Sync';
-          document.getElementById('status').innerText = 'Entry added and sync started!';
-          setTimeout(() => document.getElementById('status').innerText = '', 3000);
+          renderSyncResult(result, 'Entry saved.');
           loadEntries();
         }).withFailureHandler(function(err) {
           btn.disabled = false;
           btn.innerText = 'Add & Sync';
-          alert('Error: ' + err.message);
+          renderError('Entry was not saved: ' + err.message);
         }).addEntry(entry);
       });
 
@@ -191,11 +222,14 @@
         btn.innerText = 'Saving...';
         var horizon = document.getElementById('horizon').value;
 
-        google.script.run.withSuccessHandler(function() {
+        google.script.run.withSuccessHandler(function(result) {
           btn.disabled = false;
           btn.innerText = 'Save Settings';
-          document.getElementById('status').innerText = 'Settings saved and sync started!';
-          setTimeout(() => document.getElementById('status').innerText = '', 3000);
+          renderSyncResult(result, 'Settings saved.');
+        }).withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerText = 'Save Settings';
+          renderError('Settings were not saved: ' + err.message);
         }).updateSyncHorizon(horizon);
       });
 

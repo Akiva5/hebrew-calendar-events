@@ -2,34 +2,61 @@
  * Logic to handle Google Calendar events.
  */
 var CalendarService = (function() {
-  var CALENDAR_NAME = "Hebrew Anniversaries";
+  var CALENDAR_NAME = "Hebrew Calendar Events";
+  var LEGACY_CALENDAR_NAME = "Hebrew Anniversaries";
 
-  function _getCalendar() {
-    var calendars = CalendarApp.getCalendarsByName(CALENDAR_NAME);
+  function _getCalendar(calendarName, legacyCalendarName) {
+    calendarName = calendarName || CALENDAR_NAME;
+    legacyCalendarName = legacyCalendarName || LEGACY_CALENDAR_NAME;
+
+    var calendars = CalendarApp.getCalendarsByName(calendarName);
     if (calendars.length > 0) {
       return calendars[0];
-    } else {
-      var newCal = CalendarApp.createCalendar(CALENDAR_NAME);
-      return newCal;
     }
+
+    var legacyCalendars = CalendarApp.getCalendarsByName(legacyCalendarName);
+    if (legacyCalendars.length > 0) {
+      legacyCalendars[0].setName(calendarName);
+      return legacyCalendars[0];
+    }
+
+    return CalendarApp.createCalendar(calendarName);
   }
 
-  function addAllDayEvent(title, dateObj) {
-    var cal = _getCalendar();
+  function addAllDayEvent(title, dateObj, calendarName, legacyCalendarName) {
+    var cal = _getCalendar(calendarName, legacyCalendarName);
 
     // Check if event already exists on this day with the same title
     var events = cal.getEventsForDay(dateObj);
     for (var i = 0; i < events.length; i++) {
       if (events[i].getTitle() === title) {
-        // Event exists, no need to create
-        return;
+        return {
+          status: 'skipped',
+          reason: 'duplicate',
+          title: title,
+          date: dateObj,
+          calendarName: cal.getName()
+        };
       }
     }
 
-    cal.createAllDayEvent(title, dateObj);
+    var event = cal.createAllDayEvent(title, dateObj);
+    return {
+      status: 'created',
+      eventId: event.getId(),
+      title: title,
+      date: dateObj,
+      calendarName: cal.getName()
+    };
+  }
+
+  function getCalendarName() {
+    return CALENDAR_NAME;
   }
 
   return {
-    addAllDayEvent: addAllDayEvent
+    addAllDayEvent: addAllDayEvent,
+    getCalendarName: getCalendarName,
+    getOrCreateCalendar: _getCalendar
   };
 })();
