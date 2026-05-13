@@ -4,7 +4,7 @@
 function doGet(e) {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('Hebrew Anniversaries Sync')
+    .setTitle('Hebrew Calendar Events Sync')
     .setSandboxMode(HtmlService.SandboxMode.IFRAME)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -47,24 +47,33 @@ function getEntries() {
  * Add a new entry from UI and optionally trigger sync
  */
 function addEntry(entry) {
+  var validation = Sync.validateEntry(entry);
+  if (validation.errors.length > 0) {
+    throw new Error(validation.errors.join(' '));
+  }
+
   Storage.addEntry(entry);
-  // Also perform a sync since a new entry was added
-  syncHebrewDates();
+  return syncHebrewDates();
 }
 
 /**
  * Main function to sync the Hebrew dates to Google Calendar
  */
 function syncHebrewDates() {
-  Sync.runSync();
+  return Sync.runSync();
 }
 
 /**
  * Updates the sync horizon setting
  */
 function updateSyncHorizon(years) {
-  Storage.setSyncHorizon(years);
-  syncHebrewDates();
+  var validation = Sync.validateHorizon(years);
+  if (validation.errors.length > 0) {
+    throw new Error(validation.errors.join(' '));
+  }
+
+  Storage.setSyncHorizon(validation.years);
+  return syncHebrewDates();
 }
 
 /**

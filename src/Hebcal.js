@@ -13,8 +13,18 @@ var Hebcal = (function() {
    */
 
   function getGregorianDates(hebrewMonth, hebrewDay, numYears) {
-    var dates = [];
-    var currentHebrewYear = getCurrentHebrewYear();
+    var result = {
+      dates: [],
+      errors: []
+    };
+    var currentHebrewYear;
+
+    try {
+      currentHebrewYear = getCurrentHebrewYear();
+    } catch (e) {
+      result.errors.push("Unable to determine current Hebrew year: " + _errorMessage(e));
+      return result;
+    }
 
     // We want to get the anniversary for the current Hebrew year and the next `numYears - 1`
     for (var i = 0; i < numYears; i++) {
@@ -22,20 +32,26 @@ var Hebcal = (function() {
       var url = "https://www.hebcal.com/converter?cfg=json&hy=" + hYear + "&hm=" + encodeURIComponent(hebrewMonth) + "&hd=" + hebrewDay + "&h2g=1";
 
       try {
-        var response = UrlFetchApp.fetch(url);
+        var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+        var responseCode = response.getResponseCode();
+        if (responseCode < 200 || responseCode >= 300) {
+          result.errors.push("Hebcal returned HTTP " + responseCode + " for " + hebrewDay + " " + hebrewMonth + " " + hYear + ".");
+          continue;
+        }
+
         var json = JSON.parse(response.getContentText());
 
         if (json && json.gy && json.gm && json.gd) {
-          dates.push(new Date(json.gy, json.gm - 1, json.gd));
+          result.dates.push(new Date(json.gy, json.gm - 1, json.gd));
         } else {
-           console.error("Hebcal API invalid response for", hYear, hebrewMonth, hebrewDay, json);
+          result.errors.push("Hebcal did not return a Gregorian date for " + hebrewDay + " " + hebrewMonth + " " + hYear + ".");
         }
       } catch (e) {
-        console.error("Error fetching Hebcal date", e);
+        result.errors.push("Error fetching Hebcal date for " + hebrewDay + " " + hebrewMonth + " " + hYear + ": " + _errorMessage(e));
       }
     }
 
-    return dates;
+    return result;
   }
 
   // Helper to get an approximate current Hebrew year to start from
@@ -45,6 +61,10 @@ var Hebcal = (function() {
     var response = UrlFetchApp.fetch(url);
     var json = JSON.parse(response.getContentText());
     return json.hy;
+  }
+
+  function _errorMessage(e) {
+    return e && e.message ? e.message : String(e);
   }
 
   return {
