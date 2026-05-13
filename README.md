@@ -19,6 +19,12 @@ The purpose of this app is to keep recurring Hebrew-date observances visible in 
 
 This project uses [`clasp`](https://github.com/google/clasp) (Command Line Apps Script Projects) to develop locally and push to Google Apps Script.
 
+### Can I use it without forking this repository?
+
+Yes. You do not need to fork or duplicate the GitHub repository to use the app. You can download or clone this project locally, create your own Google Apps Script project, and push the `src/` files to that script with `clasp`.
+
+Each user still needs their own Apps Script deployment because the app runs as the deploying Google account and creates personal resources in that account: a Google Sheet named `Hebrew_Anniversaries_DB`, a Google Calendar named "Hebrew Calendar Events", and time-driven sync triggers. This project does not currently provide a shared hosted web app for multiple users.
+
 ### Prerequisites
 1. Node.js installed.
 2. Clasp installed and logged in.
