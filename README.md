@@ -2,14 +2,18 @@
 
 This project provides a personal Google Apps Script web app to synchronize Hebrew calendar events such as Birthdays and Yahrzeits with Google Calendar. It features a simple web UI for adding entries, stores the data in a Google Sheet, and automatically creates all-day events in a dedicated calendar named "Hebrew Calendar Events".
 
+## Overview
+
+The Hebrew Calendar Events Sync application solves the problem of remembering Hebrew calendar anniversaries. It syncs Hebrew dates dynamically to Gregorian dates on a rolling basis, so you are always prepared for the upcoming years.
+
 ## Features
-- Add Birthdays and Yahrzeits easily via a Web UI.
-- Fetches accurate Gregorian dates from the [Hebcal API](https://www.hebcal.com/home/developer-apis).
-- Syncs automatically to a dedicated "Hebrew Calendar Events" Google Calendar.
-- Runs as the deploying user by default, so events are created in the owner's calendar account.
-- Re-syncs dynamically if you change the desired Sync Horizon (number of years ahead).
-- Reports sync errors in the UI instead of showing false success messages.
-- Configures automated time-driven triggers.
+- **Web UI:** Add Birthdays and Yahrzeits easily via a simple web interface.
+- **Accurate Conversion:** Fetches accurate Gregorian dates from the [Hebcal API](https://www.hebcal.com/home/developer-apis).
+- **Dedicated Calendar:** Syncs automatically to a dedicated "Hebrew Calendar Events" Google Calendar.
+- **Personalized Access:** Runs as the deploying user by default, meaning events are created in the owner's Google Calendar account.
+- **Dynamic Sync Horizon:** Re-syncs dynamically if you change the desired Sync Horizon (number of years ahead to create events for).
+- **Error Reporting:** Reports sync errors in the UI instead of showing false success messages.
+- **Automated Sync:** Configures automated time-driven triggers to run background syncs.
 
 ## Setup Instructions
 
@@ -45,5 +49,30 @@ This project uses `clasp` (Command Line Apps Script Projects) to develop locally
    - Who has access "Only myself".
    - Deploy and open the Web App URL.
 
-## Architecture and Long Term Plans
-See the `docs/` folder for information about the architecture and long-term plans.
+## Configuration and Usage
+
+Once deployed, the app will run and synchronize automatically.
+
+- **Add Entries:** Open the Web App URL to add a Name, Type (Birthday/Yahrzeit), Hebrew Month, and Hebrew Day.
+- **Sync Horizon:** Configure the number of future years you want to generate events for via the Web UI (default: 3). Updating this value dynamically resyncs events.
+- **Data Storage:** The web app creates and uses a Google Sheet named `Hebrew_Anniversaries_DB` in your Google Drive to store all records. You can manually inspect or edit this sheet if needed.
+
+## Sync Behavior
+
+- Automatically creates an all-day event on your dedicated "Hebrew Calendar Events" calendar.
+- Automatically handles duplicates by skipping entries if an event with the exact title already exists for that day.
+- A time-driven trigger (configured via `setupTriggers`) automatically runs the synchronization every 14 days in the background to ensure upcoming years are covered.
+
+## Manual Testing and Verification
+
+To verify that the system is operating correctly from the Google Apps Script editor, you can run the built-in smoke tests:
+
+1. Open the Apps Script editor (`clasp open`).
+2. Open the `src/ManualTests.js` file.
+3. Select the `runManualTests` function from the run menu.
+4. Click **Run**.
+5. The execution log will output a structured JSON array indicating if tests passed or failed. This tests core validation, sync result shape, duplicate skipping logic, and calendar renaming logic without affecting your primary settings.
+
+## Architecture
+
+See the `docs/` folder for deeper architectural information.
