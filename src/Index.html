@@ -458,7 +458,7 @@
         }).withFailureHandler(function(err) {
           btn.disabled = false;
           btn.innerText = i18n[currentLang].addBtn;
-          renderError(i18n[currentLang].entryNotSaved + err.message);
+          renderError(i18n[currentLang].entryNotSaved + (currentLang === 'he' ? '' : err.message));
         }).addEntry(entry);
       });
 
@@ -475,7 +475,7 @@
         }).withFailureHandler(function(err) {
           btn.disabled = false;
           btn.innerText = i18n[currentLang].saveSettingsBtn;
-          renderError(i18n[currentLang].settingsNotSaved + err.message);
+          renderError(i18n[currentLang].settingsNotSaved + (currentLang === 'he' ? '' : err.message));
         }).updateSyncHorizon(horizon);
       });
 
