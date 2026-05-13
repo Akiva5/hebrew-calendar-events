@@ -1,10 +1,10 @@
 # Hebrew Calendar Events Sync for Google Calendar
 
-This project provides a personal Google Apps Script web app to synchronize Hebrew calendar events such as Birthdays and Yahrzeits with Google Calendar. It features a simple web UI for adding entries, stores the data in a Google Sheet, and automatically creates all-day events in a dedicated calendar named "Hebrew Calendar Events".
+This project provides a personal [Google Apps Script](https://developers.google.com/apps-script) web app to synchronize Hebrew calendar events such as Birthdays and Yahrzeits with Google Calendar. It features a simple web UI for adding entries, stores the data in a Google Sheet, and automatically creates all-day events in a dedicated calendar named "Hebrew Calendar Events".
 
 ## Overview
 
-The Hebrew Calendar Events Sync application solves the problem of remembering Hebrew calendar anniversaries. It syncs Hebrew dates dynamically to Gregorian dates on a rolling basis, so you are always prepared for the upcoming years.
+The purpose of this app is to keep recurring Hebrew-date observances visible in your regular Google Calendar without manually converting each year. You enter the Hebrew date once, the app uses the [Hebcal API](https://www.hebcal.com/home/developer-apis) to find upcoming Gregorian dates, and it keeps a rolling set of all-day calendar events up to your configured sync horizon.
 
 ## Features
 - **Web UI:** Add Birthdays and Yahrzeits easily via a simple web interface.
@@ -17,7 +17,7 @@ The Hebrew Calendar Events Sync application solves the problem of remembering He
 
 ## Setup Instructions
 
-This project uses `clasp` (Command Line Apps Script Projects) to develop locally and push to Google Apps Script.
+This project uses [`clasp`](https://github.com/google/clasp) (Command Line Apps Script Projects) to develop locally and push to Google Apps Script.
 
 ### Prerequisites
 1. Node.js installed.
@@ -68,7 +68,7 @@ Once deployed, the app will run and synchronize automatically.
 To verify that the system is operating correctly from the Google Apps Script editor, you can run the built-in smoke tests:
 
 1. Open the Apps Script editor (`clasp open`).
-2. Open the `src/ManualTests.js` file.
+2. Open the `ManualTests.js` file.
 3. Select the `runManualTests` function from the run menu.
 4. Click **Run**.
 5. The execution log will output a structured JSON array indicating if tests passed or failed. This tests core validation, sync result shape, duplicate skipping logic, and calendar renaming logic without affecting your primary settings.
