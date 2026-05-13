@@ -296,7 +296,7 @@
           syncedTo: 'Synced to',
           created: 'created',
           skipped: 'already existed.',
-          attention: 'Some sync items need attention:',
+          attention: 'Some sync items need attention:',\n          attentionDesc: 'Some sync items need attention. Please try again or check entry details.',
           defaultCalendarName: 'Hebrew Calendar Events'
         },
         he: {
@@ -340,7 +340,7 @@
           syncedTo: 'סונכרן ל-',
           created: 'נוצרו',
           skipped: 'כבר היו קיימים.',
-          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',
+          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',\n          attentionDesc: 'חלק מפריטי הסנכרון דורשים תשומת לב. נסה שוב או בדוק את פרטי הרשומה.',
           defaultCalendarName: 'אירועי לוח שנה עברי'
         }
       };
@@ -422,7 +422,7 @@
         status.classList.toggle('has-errors', errors.length > 0);
 
         if (errors.length > 0) {
-          status.innerText = successPrefix + ' ' + i18n[currentLang].attention + ' ' + errors.join(' ');
+          status.innerText = currentLang === 'he' ? i18n[currentLang].attentionDesc : successPrefix + ' ' + i18n[currentLang].attention + ' ' + errors.join(' ');
           return;
         }
 
