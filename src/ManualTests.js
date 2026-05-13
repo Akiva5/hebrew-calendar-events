@@ -73,6 +73,32 @@ function runManualTests() {
     }
   }));
 
+  results.push(_manualTest('missing gregorianDate is validated successfully', function() {
+    var result = Sync.validateEntry({
+      name: 'Test Person',
+      type: 'Birthday',
+      month: 'Nisan',
+      day: 15
+    });
+    return result.errors.length === 0;
+  }));
+
+  results.push(_manualTest('malformed gregorianDate is rejected', function() {
+    var result = Sync.validateEntry({
+      name: 'Test Person',
+      type: 'Birthday',
+      month: 'Nisan',
+      day: 15,
+      gregorianDate: '15/04/1990'
+    });
+    return result.errors.length === 1 && result.errors[0].indexOf('YYYY-MM-DD') !== -1;
+  }));
+
+  results.push(_manualTest('Hebcal date conversion parses correctly', function() {
+    var result = Hebcal.getHebrewDateFromGregorian('1995-02-14');
+    return result.error === null && result.hebrewMonth === 'Adar I' && result.hebrewDay === 14;
+  }));
+
   console.log(JSON.stringify(results));
   return results;
 }

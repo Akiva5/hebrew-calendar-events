@@ -208,6 +208,9 @@
           <option value="Yahrzeit" data-i18n="typeYahrzeit">Yahrzeit</option>
         </select>
 
+                <label for="gregorianDate" data-i18n="gregorianDateLabel">Original English Date (Optional)</label>
+        <input type="date" id="gregorianDate">
+
         <label for="month" data-i18n="monthLabel">Hebrew Month</label>
         <select id="month">
           <option value="Nisan" data-i18n="monthNisan">Nisan</option>
@@ -263,6 +266,8 @@
           typeLabel: 'Type',
           typeBirthday: 'Birthday',
           typeYahrzeit: 'Yahrzeit',
+          gregorianDateLabel: 'Original English Date (Optional)',
+          converting: 'Converting...',
           monthLabel: 'Hebrew Month',
           monthNisan: 'Nisan',
           monthIyyar: 'Iyyar',
@@ -307,6 +312,8 @@
           typeLabel: 'סוג',
           typeBirthday: 'יום הולדת',
           typeYahrzeit: 'יום זיכרון',
+          gregorianDateLabel: 'תאריך לועזי מקורי (אופציונלי)',
+          converting: 'ממיר...',
           monthLabel: 'חודש עברי',
           monthNisan: 'ניסן',
           monthIyyar: 'אייר',
@@ -398,7 +405,7 @@
             var date = document.createElement('span');
             name.textContent = entry.name + ' (' + (entry.type === 'Birthday' ? i18n[currentLang].typeBirthday : i18n[currentLang].typeYahrzeit) + ')';
             let m = 'month' + entry.month.replace(/[^a-zA-Z]/g, '').replace('AdarII', 'Adar2').replace('AdarI', 'Adar1');
-            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month);
+            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month) + (entry.gregorianDate ? ' (' + entry.gregorianDate + ')' : '');
             li.appendChild(name);
             li.appendChild(date);
             list.appendChild(li);
@@ -436,6 +443,48 @@
         status.innerText = message;
       }
 
+
+      document.getElementById('gregorianDate').addEventListener('change', function(e) {
+        var dateVal = e.target.value;
+        if (!dateVal) return;
+
+        var monthEl = document.getElementById('month');
+        var dayEl = document.getElementById('day');
+
+        monthEl.disabled = true;
+        dayEl.disabled = true;
+
+        google.script.run.withSuccessHandler(function(result) {
+          monthEl.disabled = false;
+          dayEl.disabled = false;
+
+          if (result && result.hebrewMonth && result.hebrewDay) {
+            // Set the day
+            dayEl.value = result.hebrewDay;
+
+            // Try to match the month (Hebcal might return things like 'Adar I', 'Adar II', 'Sh\'vat')
+            var hm = result.hebrewMonth;
+
+            // normalize some hebcal names to match our options
+            if (hm === "Adar I") hm = "Adar I";
+            if (hm === "Adar II") hm = "Adar II";
+            if (hm === "Sh'vat") hm = "Sh'vat";
+
+            var options = monthEl.options;
+            for (var i = 0; i < options.length; i++) {
+              if (options[i].value === hm || options[i].value.replace(/[^a-zA-Z]/g, '') === hm.replace(/[^a-zA-Z]/g, '')) {
+                monthEl.selectedIndex = i;
+                break;
+              }
+            }
+          }
+        }).withFailureHandler(function(err) {
+          monthEl.disabled = false;
+          dayEl.disabled = false;
+          renderError("Failed to convert date: " + err.message);
+        }).convertGregorianToHebrew(dateVal);
+      });
+
       document.getElementById('addForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var btn = document.getElementById('addBtn');
@@ -446,7 +495,8 @@
           name: document.getElementById('name').value,
           type: document.getElementById('type').value,
           month: document.getElementById('month').value,
-          day: document.getElementById('day').value
+          day: document.getElementById('day').value,
+          gregorianDate: document.getElementById('gregorianDate').value
         };
 
         google.script.run.withSuccessHandler(function(result) {

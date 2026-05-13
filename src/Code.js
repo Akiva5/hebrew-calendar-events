@@ -82,3 +82,16 @@ function updateSyncHorizon(years) {
 function getSyncHorizon() {
   return Storage.getSyncHorizon();
 }
+
+
+/**
+ * Convert a Gregorian date to Hebrew month and day.
+ * Called from UI.
+ */
+function convertGregorianToHebrew(dateString) {
+  var result = Hebcal.getHebrewDateFromGregorian(dateString);
+  if (result.error) {
+    throw new Error(result.error);
+  }
+  return result;
+}
