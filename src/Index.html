@@ -279,6 +279,10 @@
           monthAdar2: 'Adar II',
           monthAdar: 'Adar (Regular year)',
           dayLabel: 'Hebrew Day (1-30)',
+          editBtn: 'Edit',
+          updateBtn: 'Update & Sync',
+          updatingBtn: 'Updating...',
+          cancelBtn: 'Cancel',
           addBtn: 'Add & Sync',
           addingBtn: 'Adding...',
           settingsTitle: 'Settings',
@@ -323,6 +327,10 @@
           monthAdar2: 'אדר ב\'',
           monthAdar: 'אדר',
           dayLabel: 'יום בחודש (1-30)',
+          editBtn: 'ערוך',
+          updateBtn: 'עדכן וסנכרן',
+          updatingBtn: 'מעדכן...',
+          cancelBtn: 'ביטול',
           addBtn: 'הוסף וסנכרן',
           addingBtn: 'מוסיף...',
           settingsTitle: 'הגדרות',
@@ -346,6 +354,44 @@
       };
 
       let currentLang = localStorage.getItem('lang') || 'en';
+      let editingId = null;
+
+      function editEntry(entry) {
+        editingId = entry.id;
+        document.getElementById('name').value = entry.name;
+        document.getElementById('type').value = entry.type;
+        document.getElementById('month').value = entry.month;
+        document.getElementById('day').value = entry.day;
+
+        var btn = document.getElementById('addBtn');
+        btn.innerText = i18n[currentLang].updateBtn;
+
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (!cancelBtn) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancelBtn';
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn btn-secondary';
+            cancelBtn.style.marginLeft = '10px';
+            cancelBtn.style.marginRight = '10px';
+            cancelBtn.onclick = cancelEdit;
+            btn.parentNode.insertBefore(cancelBtn, btn.nextSibling);
+        }
+        cancelBtn.innerText = i18n[currentLang].cancelBtn;
+        cancelBtn.style.display = 'inline-block';
+
+        document.getElementById('addForm').scrollIntoView({behavior: 'smooth'});
+      }
+
+      function cancelEdit() {
+        editingId = null;
+        document.getElementById('addForm').reset();
+        document.getElementById('addBtn').innerText = i18n[currentLang].addBtn;
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
+      }
 
       function setLanguage(lang) {
         currentLang = lang;
@@ -372,10 +418,15 @@
 
         // Re-render UI elements that depend on translations
         loadEntries();
-        if (document.getElementById('addBtn').disabled) {
-           document.getElementById('addBtn').innerText = i18n[currentLang].addingBtn;
+        var addBtn = document.getElementById('addBtn');
+        if (addBtn.disabled) {
+           addBtn.innerText = editingId !== null ? i18n[currentLang].updatingBtn : i18n[currentLang].addingBtn;
         } else {
-           document.getElementById('addBtn').innerText = i18n[currentLang].addBtn;
+           addBtn.innerText = editingId !== null ? i18n[currentLang].updateBtn : i18n[currentLang].addBtn;
+        }
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+            cancelBtn.innerText = i18n[currentLang].cancelBtn;
         }
         if (document.getElementById('updateHorizonBtn').disabled) {
            document.getElementById('updateHorizonBtn').innerText = i18n[currentLang].savingSettingsBtn;
@@ -401,6 +452,16 @@
             date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month);
             li.appendChild(name);
             li.appendChild(date);
+
+            var editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-secondary btn-sm';
+            editBtn.style.marginLeft = '10px';
+            editBtn.style.marginRight = '10px';
+            editBtn.style.padding = '2px 8px';
+            editBtn.textContent = i18n[currentLang].editBtn;
+            editBtn.onclick = function() { editEntry(entry); };
+            li.appendChild(editBtn);
+
             list.appendChild(li);
           });
         }).getEntries();
@@ -440,7 +501,7 @@
         e.preventDefault();
         var btn = document.getElementById('addBtn');
         btn.disabled = true;
-        btn.innerText = i18n[currentLang].addingBtn;
+        btn.innerText = editingId !== null ? i18n[currentLang].updatingBtn : i18n[currentLang].addingBtn;
 
         var entry = {
           name: document.getElementById('name').value,
@@ -449,17 +510,24 @@
           day: document.getElementById('day').value
         };
 
-        google.script.run.withSuccessHandler(function(result) {
-          document.getElementById('addForm').reset();
+        var successHandler = function(result) {
+          cancelEdit(); // Resets form, editingId, and buttons
           btn.disabled = false;
-          btn.innerText = i18n[currentLang].addBtn;
           renderSyncResult(result, i18n[currentLang].entrySaved);
           loadEntries();
-        }).withFailureHandler(function(err) {
+        };
+
+        var failureHandler = function(err) {
           btn.disabled = false;
-          btn.innerText = i18n[currentLang].addBtn;
+          btn.innerText = editingId !== null ? i18n[currentLang].updateBtn : i18n[currentLang].addBtn;
           renderError(i18n[currentLang].entryNotSaved + (currentLang === 'he' ? '' : err.message));
-        }).addEntry(entry);
+        };
+
+        if (editingId !== null) {
+          google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).updateEntry(editingId, entry);
+        } else {
+          google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).addEntry(entry);
+        }
       });
 
       document.getElementById('updateHorizonBtn').addEventListener('click', function() {
