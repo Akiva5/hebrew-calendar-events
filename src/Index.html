@@ -413,7 +413,7 @@
             var date = document.createElement('span');
             name.textContent = entry.name + ' (' + (entry.type === 'Birthday' ? i18n[currentLang].typeBirthday : i18n[currentLang].typeYahrzeit) + ')';
             let m = 'month' + entry.month.replace(/[^a-zA-Z]/g, '').replace('AdarII', 'Adar2').replace('AdarI', 'Adar1');
-            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month) + (entry.gregorianDate ? ' (' + entry.gregorianDate + ')' : '');
+            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month) + (entry.gregorianDate ? ' (' + entry.gregorianDate + (entry.afterSunset ? ', ' + (currentLang === 'he' ? 'אחרי השקיעה' : 'after sunset') : '') + ')' : '');
             li.appendChild(name);
             li.appendChild(date);
             list.appendChild(li);
@@ -510,7 +510,8 @@
           type: document.getElementById('type').value,
           month: document.getElementById('month').value,
           day: document.getElementById('day').value,
-          gregorianDate: document.getElementById('gregorianDate').value
+          gregorianDate: document.getElementById('gregorianDate').value,
+          afterSunset: document.getElementById('afterSunset').checked
         };
 
         google.script.run.withSuccessHandler(function(result) {
