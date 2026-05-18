@@ -57,6 +57,19 @@ function addEntry(entry) {
 }
 
 /**
+ * Update an existing entry from UI and optionally trigger sync
+ */
+function updateEntry(id, entry) {
+  var validation = Sync.validateEntry(entry);
+  if (validation.errors.length > 0) {
+    throw new Error(validation.errors.join(' '));
+  }
+
+  Storage.updateEntry(id, entry);
+  return syncHebrewDates();
+}
+
+/**
  * Main function to sync the Hebrew dates to Google Calendar
  */
 function syncHebrewDates() {
