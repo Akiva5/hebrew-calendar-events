@@ -95,8 +95,13 @@ function runManualTests() {
   }));
 
   results.push(_manualTest('Hebcal date conversion parses correctly', function() {
-    var result = Hebcal.getHebrewDateFromGregorian('1995-02-14');
+    var result = Hebcal.getHebrewDateFromGregorian('1995-02-14', false);
     return result.error === null && result.hebrewMonth === 'Adar I' && result.hebrewDay === 14;
+  }));
+
+  results.push(_manualTest('Hebcal date conversion parses correctly after sunset', function() {
+    var result = Hebcal.getHebrewDateFromGregorian('1995-02-14', true);
+    return result.error === null && result.hebrewMonth === 'Adar I' && result.hebrewDay === 15;
   }));
 
   console.log(JSON.stringify(results));

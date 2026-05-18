@@ -208,8 +208,14 @@
           <option value="Yahrzeit" data-i18n="typeYahrzeit">Yahrzeit</option>
         </select>
 
-                <label for="gregorianDate" data-i18n="gregorianDateLabel">Original English Date (Optional)</label>
-        <input type="date" id="gregorianDate">
+                        <label for="gregorianDate" data-i18n="gregorianDateLabel">Original English Date (Optional)</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="date" id="gregorianDate" style="flex: 1;">
+          <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+            <input type="checkbox" id="afterSunset">
+            <span data-i18n="afterSunsetLabel">After Sunset (Before Midnight)</span>
+          </label>
+        </div>
 
         <label for="month" data-i18n="monthLabel">Hebrew Month</label>
         <select id="month">
@@ -267,6 +273,7 @@
           typeBirthday: 'Birthday',
           typeYahrzeit: 'Yahrzeit',
           gregorianDateLabel: 'Original English Date (Optional)',
+          afterSunsetLabel: 'After Sunset (Before Midnight)',
           converting: 'Converting...',
           monthLabel: 'Hebrew Month',
           monthNisan: 'Nisan',
@@ -313,6 +320,7 @@
           typeBirthday: 'יום הולדת',
           typeYahrzeit: 'יום זיכרון',
           gregorianDateLabel: 'תאריך לועזי מקורי (אופציונלי)',
+          afterSunsetLabel: 'אחרי השקיעה (לפני חצות)',
           converting: 'ממיר...',
           monthLabel: 'חודש עברי',
           monthNisan: 'ניסן',
@@ -444,8 +452,10 @@
       }
 
 
-      document.getElementById('gregorianDate').addEventListener('change', function(e) {
-        var dateVal = e.target.value;
+
+      function updateHebrewDateFromGregorian() {
+        var dateVal = document.getElementById('gregorianDate').value;
+        var afterSunset = document.getElementById('afterSunset').checked;
         if (!dateVal) return;
 
         var monthEl = document.getElementById('month');
@@ -462,7 +472,7 @@
             // Set the day
             dayEl.value = result.hebrewDay;
 
-            // Try to match the month (Hebcal might return things like 'Adar I', 'Adar II', 'Sh\'vat')
+            // Try to match the month
             var hm = result.hebrewMonth;
 
             // normalize some hebcal names to match our options
@@ -482,8 +492,12 @@
           monthEl.disabled = false;
           dayEl.disabled = false;
           renderError("Failed to convert date: " + err.message);
-        }).convertGregorianToHebrew(dateVal);
-      });
+        }).convertGregorianToHebrew(dateVal, afterSunset);
+      }
+
+      document.getElementById('gregorianDate').addEventListener('change', updateHebrewDateFromGregorian);
+      document.getElementById('afterSunset').addEventListener('change', updateHebrewDateFromGregorian);
+
 
       document.getElementById('addForm').addEventListener('submit', function(e) {
         e.preventDefault();

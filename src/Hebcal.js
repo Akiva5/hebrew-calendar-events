@@ -67,7 +67,7 @@ var Hebcal = (function() {
   /**
    * Convert a Gregorian date (YYYY-MM-DD) to a Hebrew date using Hebcal.
    */
-  function getHebrewDateFromGregorian(dateString) {
+  function getHebrewDateFromGregorian(dateString, afterSunset) {
     var result = {
       hebrewMonth: null,
       hebrewDay: null,
@@ -95,6 +95,9 @@ var Hebcal = (function() {
     }
 
     var url = "https://www.hebcal.com/converter?cfg=json&gy=" + gy + "&gm=" + gm + "&gd=" + gd + "&g2h=1";
+    if (afterSunset) {
+      url += "&gs=on";
+    }
 
     try {
       var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
