@@ -77,6 +77,13 @@ var Sync = (function() {
       errors.push('Hebrew day must be a number from 1 to 30.');
     }
 
+    if (entry && entry.gregorianDate) {
+      var parts = entry.gregorianDate.split('-');
+      if (parts.length !== 3 || isNaN(parseInt(parts[0], 10)) || isNaN(parseInt(parts[1], 10)) || isNaN(parseInt(parts[2], 10))) {
+        errors.push('Gregorian date must be in YYYY-MM-DD format.');
+      }
+    }
+
     return {
       day: day,
       errors: errors

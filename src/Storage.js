@@ -15,7 +15,7 @@ var Storage = (function() {
       // Create new sheet
       var ss = SpreadsheetApp.create(FILE_NAME);
       var sheet = ss.getActiveSheet();
-      sheet.appendRow(["Name", "Type", "Hebrew Month", "Hebrew Day"]);
+      sheet.appendRow(["Name", "Type", "Hebrew Month", "Hebrew Day", "Gregorian Date", "After Sunset"]);
       return ss;
     }
   }
@@ -33,7 +33,9 @@ var Storage = (function() {
           name: data[i][0],
           type: data[i][1], // 'Birthday' or 'Yahrzeit'
           month: data[i][2],
-          day: data[i][3]
+          day: data[i][3],
+          gregorianDate: data[i][4] || '',
+          afterSunset: data[i][5] === true || data[i][5] === 'TRUE'
         });
       }
     }
@@ -43,7 +45,7 @@ var Storage = (function() {
   function addEntry(entry) {
     var ss = _getDbFile();
     var sheet = ss.getActiveSheet();
-    sheet.appendRow([entry.name, entry.type, entry.month, entry.day]);
+    sheet.appendRow([entry.name, entry.type, entry.month, entry.day, entry.gregorianDate || '', entry.afterSunset === true]);
   }
 
   function getSyncHorizon() {
