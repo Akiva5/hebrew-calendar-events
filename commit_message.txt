@@ -1,0 +1,7 @@
+Finish issues #6 and #10: Add GitHub link, Hebrew README, and Hebrew dates toggle
+
+- Add translation keys and a visible link to the GitHub repo in `src/Index.html` under the settings section.
+- Implement a UI toggle switch to format dates with proper Hebrew numeral letters (e.g. ט"ו instead of 15). The state of the toggle is saved to and read from `localStorage` to persist across page reloads without requiring backend changes.
+- Append a complete Hebrew translation of the `README.md` at the bottom of the file, and add a top jump link below the main title.
+- Verify build passes with `npm ci --legacy-peer-deps && npm run build` and ensure `npm run lint` completes without error.
+- All modifications strictly affect the UI and documentation only; no backend sync logic, conversion rules, or spreadsheet schemas were altered.
