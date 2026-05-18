@@ -15,6 +15,24 @@ function runManualTests() {
     return result.errors.length === 1 && result.errors[0].indexOf('Hebrew day') !== -1;
   }));
 
+  results.push(_manualTest('updating invalid non-integer entry ID is rejected', function() {
+    var errorThrown = false;
+    try {
+      Storage.updateEntry("2", {
+        name: 'Test',
+        type: 'Birthday',
+        month: 'Nisan',
+        day: 1
+      });
+    } catch (e) {
+      errorThrown = true;
+      if (e.message !== "Invalid ID.") {
+        return false;
+      }
+    }
+    return errorThrown;
+  }));
+
   results.push(_manualTest('updating invalid entry ID is rejected', function() {
     var errorThrown = false;
     try {

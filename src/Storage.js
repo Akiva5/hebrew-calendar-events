@@ -48,6 +48,10 @@ var Storage = (function() {
   }
 
   function updateEntry(id, entry) {
+    if (typeof id !== 'number' || !Number.isInteger(id)) {
+      throw new Error("Invalid ID.");
+    }
+
     var ss = _getDbFile();
     var sheet = ss.getActiveSheet();
     var lastRow = sheet.getLastRow();
@@ -56,6 +60,7 @@ var Storage = (function() {
       throw new Error("Entry not found.");
     }
 
+    // Explicitly update only the first 4 columns to preserve any external data (e.g. Gregorian Dates column added by #5)
     var range = sheet.getRange(id, 1, 1, 4);
     range.setValues([[entry.name, entry.type, entry.month, entry.day]]);
   }
