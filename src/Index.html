@@ -241,6 +241,14 @@
           <input type="number" id="horizon" min="1" max="10" style="width: 80px;">
           <button type="button" id="updateHorizonBtn" data-i18n="saveSettingsBtn">Save Settings</button>
         </div>
+
+        <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 15px;">
+            <input type="checkbox" id="properHebrewDates" style="width: auto;">
+            <span data-i18n="properHebrewDatesLabel">Display proper Hebrew dates (e.g. ט"ו instead of 15)</span>
+          </label>
+          <a href="https://github.com/Akiva5/hebrew-calendar-events" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: none; font-weight: bold;" data-i18n="githubRepo">GitHub Repository</a>
+        </div>
         <p style="font-size: 0.9em; color: #7f8c8d;" data-i18n="horizonDesc">The number of future years to create calendar events for (default: 3).</p>
       </div>
 
@@ -296,8 +304,11 @@
           syncedTo: 'Synced to',
           created: 'created',
           skipped: 'already existed.',
-          attention: 'Some sync items need attention:',\n          attentionDesc: 'Some sync items need attention. Please try again or check entry details.',
-          defaultCalendarName: 'Hebrew Calendar Events'
+          attention: 'Some sync items need attention:',
+          attentionDesc: 'Some sync items need attention. Please try again or check entry details.',
+          defaultCalendarName: 'Hebrew Calendar Events',
+          githubRepo: 'GitHub Repository',
+          properHebrewDatesLabel: 'Display proper Hebrew dates (e.g. ט"ו instead of 15)'
         },
         he: {
           appTitle: 'סנכרון אירועי לוח שנה עברי',
@@ -340,8 +351,11 @@
           syncedTo: 'סונכרן ל-',
           created: 'נוצרו',
           skipped: 'כבר היו קיימים.',
-          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',\n          attentionDesc: 'חלק מפריטי הסנכרון דורשים תשומת לב. נסה שוב או בדוק את פרטי הרשומה.',
-          defaultCalendarName: 'אירועי לוח שנה עברי'
+          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',
+          attentionDesc: 'חלק מפריטי הסנכרון דורשים תשומת לב. נסה שוב או בדוק את פרטי הרשומה.',
+          defaultCalendarName: 'אירועי לוח שנה עברי',
+          githubRepo: 'מאגר GitHub',
+          properHebrewDatesLabel: 'הצג תאריכים עבריים (לדוגמה ט"ו במקום 15)'
         }
       };
 
@@ -384,6 +398,12 @@
         }
       }
 
+      const hebrewDays = {
+        1: "א'", 2: "ב'", 3: "ג'", 4: "ד'", 5: "ה'", 6: "ו'", 7: "ז'", 8: "ח'", 9: "ט'", 10: "י'",
+        11: "י\"א", 12: "י\"ב", 13: "י\"ג", 14: "י\"ד", 15: "ט\"ו", 16: "ט\"ז", 17: "י\"ז", 18: "י\"ח", 19: "י\"ט",
+        20: "כ'", 21: "כ\"א", 22: "כ\"ב", 23: "כ\"ג", 24: "כ\"ד", 25: "כ\"ה", 26: "כ\"ו", 27: "כ\"ז", 28: "כ\"ח", 29: "כ\"ט", 30: "ל'"
+      };
+
       function loadEntries() {
         google.script.run.withSuccessHandler(function(entries) {
           var list = document.getElementById('entriesList');
@@ -398,7 +418,12 @@
             var date = document.createElement('span');
             name.textContent = entry.name + ' (' + (entry.type === 'Birthday' ? i18n[currentLang].typeBirthday : i18n[currentLang].typeYahrzeit) + ')';
             let m = 'month' + entry.month.replace(/[^a-zA-Z]/g, '').replace('AdarII', 'Adar2').replace('AdarI', 'Adar1');
-            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month);
+            const properHebrewEnabled = localStorage.getItem('properHebrewDates') === 'true';
+            if (properHebrewEnabled && hebrewDays[entry.day]) {
+              date.textContent = hebrewDays[entry.day] + ' ' + (i18n[currentLang][m] || entry.month);
+            } else {
+              date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month);
+            }
             li.appendChild(name);
             li.appendChild(date);
             list.appendChild(li);
@@ -483,6 +508,14 @@
       document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
       document.getElementById('langHe').addEventListener('click', () => setLanguage('he'));
       setLanguage(currentLang);
+
+      // Init Toggle
+      const properHebrewToggle = document.getElementById('properHebrewDates');
+      properHebrewToggle.checked = localStorage.getItem('properHebrewDates') === 'true';
+      properHebrewToggle.addEventListener('change', function(e) {
+        localStorage.setItem('properHebrewDates', e.target.checked);
+        loadEntries();
+      });
 
       // Init
       loadSettings();

@@ -1,5 +1,7 @@
 # Hebrew Calendar Events Sync for Google Calendar
 
+[עברית](#עברית)
+
 This project provides a personal [Google Apps Script](https://developers.google.com/apps-script) web app to synchronize Hebrew calendar events such as Birthdays and Yahrzeits with Google Calendar. It features a simple web UI for adding entries, stores the data in a Google Sheet, and automatically creates all-day events in a dedicated calendar named "Hebrew Calendar Events".
 
 ## Overview
@@ -90,3 +92,64 @@ To verify that the system is operating correctly from the Google Apps Script edi
 ## Architecture
 
 See the `docs/` folder for deeper architectural information.
+
+## עברית
+
+# סנכרון אירועי לוח שנה עברי עבור Google Calendar
+
+פרויקט זה מספק אפליקציית אינטרנט אישית מבוססת [Google Apps Script](https://developers.google.com/apps-script) לסנכרון אירועים בלוח השנה העברי, כגון ימי הולדת וימי זיכרון, עם Google Calendar. האפליקציה כוללת ממשק משתמש פשוט להוספת רשומות, שומרת את הנתונים ב-Google Sheet, ויוצרת באופן אוטומטי אירועים של יום שלם ביומן ייעודי בשם "Hebrew Calendar Events" (או "אירועי לוח שנה עברי").
+
+## סקירה כללית
+
+מטרת האפליקציה היא לשמור על תאריכים עבריים חוזרים גלויים ב-Google Calendar הרגיל שלכם, מבלי להמיר אותם ידנית בכל שנה. אתם מזינים את התאריך העברי פעם אחת, והאפליקציה משתמשת ב-[Hebcal API](https://www.hebcal.com/home/developer-apis) כדי למצוא את התאריכים הלועזיים הקרובים, ושומרת על אירועים מתגלגלים ביומן עד לטווח הסנכרון שהוגדר.
+
+## תכונות מפתח
+- **ממשק אינטרנט:** הוספת ימי הולדת וימי זיכרון בקלות דרך ממשק דפדפן פשוט.
+- **המרה מדויקת:** שולף תאריכים לועזיים מדויקים דרך [Hebcal API](https://www.hebcal.com/home/developer-apis).
+- **יומן ייעודי:** מסתנכרן אוטומטית ליומן Google ייעודי.
+- **גישה אישית:** רץ תחת המשתמש שלכם (Deploying User) כברירת מחדל, כלומר האירועים נוצרים בתוך חשבון ה-Google הפרטי שלכם.
+- **טווח סנכרון דינמי:** מסנכרן מחדש באופן אוטומטי במקרה של שינוי טווח הסנכרון (מספר השנים קדימה ליצירת אירועים).
+- **דיווח שגיאות:** מציג שגיאות סנכרון בממשק המשתמש.
+- **סנכרון אוטומטי:** תמיכה בטריגרים מבוססי זמן שמריצים סנכרון רקע אוטומטי.
+
+## הנחיות התקנה
+
+הפרויקט משתמש ב-[`clasp`](https://github.com/google/clasp) (Command Line Apps Script Projects) לפיתוח מקומי והעלאת קוד ל-Google Apps Script.
+
+### שימוש באפליקציה המאוחסנת
+
+אם ברצונכם רק להוסיף אירועים מבלי להגדיר קוד, ניתן לפתוח את האפליקציה המוכנה:
+
+[פתח את Hebrew Calendar Events Sync](https://script.google.com/macros/s/AKfycbyLAQOJct9c0D2ainZcC0ht4dar-bU1bJsG6-23TrPAySb0_tgfP10wOO4kT2XJwp0/exec)
+
+### פריסה אישית (Deployment)
+
+אינכם חייבים לבצע fork למאגר ב-GitHub כדי להריץ עותק משלכם. ניתן להוריד או לשכפל (clone) את הפרויקט למחשב המקומי שלכם, ליצור פרויקט Google Apps Script חדש, ולדחוף (push) את קבצי ה-`src/` לאותו סקריפט באמצעות `clasp`.
+
+1. התקינו Node.js.
+2. התקינו את Clasp והתחברו אליו:
+   ```bash
+   npm install -g @google/clasp
+   clasp login
+   ```
+3. צרו פרויקט Apps Script חדש:
+   ```bash
+   clasp create --title "Hebrew Calendar Events" --type webapp --rootDir ./src
+   ```
+4. דחפו את הקבצים:
+   ```bash
+   clasp push
+   ```
+5. פתחו את העורך:
+   ```bash
+   clasp open
+   ```
+6. בעורך, הריצו פעם אחת את הפונקציה `setupTriggers` כדי להפעיל סנכרון רקע שוטף.
+7. פרסו בתור Web App:
+   - לחצו על Deploy -> New deployment.
+   - סוג: Web app.
+   - Execute as: Me.
+   - Who has access: Only myself.
+
+## הגדרות ושימוש
+לאחר הפריסה, האפליקציה תרוץ ותסתנכרן אוטומטית. ניתן לפתוח את כתובת האפליקציה (Web App URL) כדי להוסיף רשומות, לעדכן את טווח הסנכרון, ולראות את התוצאות. הרשומות שלכם נשמרות בקובץ Google Sheet תחת השם `Hebrew_Anniversaries_DB` ב-Google Drive שלכם.
