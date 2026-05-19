@@ -93,7 +93,7 @@
         font-size: 0.9rem;
         margin-bottom: 4px;
       }
-      input[type="text"], select, input[type="number"] {
+      input[type="text"], input[type="date"], select, input[type="number"] {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid var(--border-color);
@@ -103,7 +103,7 @@
         font-family: inherit;
         transition: border-color 0.2s;
       }
-      input[type="text"]:focus, select:focus, input[type="number"]:focus {
+      input[type="text"]:focus, input[type="date"]:focus, select:focus, input[type="number"]:focus {
         outline: none;
         border-color: var(--primary-color);
       }
@@ -208,6 +208,15 @@
           <option value="Yahrzeit" data-i18n="typeYahrzeit">Yahrzeit</option>
         </select>
 
+        <label for="gregorianDate" data-i18n="gregorianDateLabel">Original English Date (Optional)</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="date" id="gregorianDate" style="flex: 1;">
+          <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+            <input type="checkbox" id="afterSunset">
+            <span data-i18n="afterSunsetLabel">After Sunset (Before Midnight)</span>
+          </label>
+        </div>
+
         <label for="month" data-i18n="monthLabel">Hebrew Month</label>
         <select id="month">
           <option value="Nisan" data-i18n="monthNisan">Nisan</option>
@@ -241,6 +250,13 @@
           <input type="number" id="horizon" min="1" max="10" style="width: 80px;">
           <button type="button" id="updateHorizonBtn" data-i18n="saveSettingsBtn">Save Settings</button>
         </div>
+        <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 15px;">
+            <input type="checkbox" id="properHebrewDates" style="width: auto;">
+            <span data-i18n="properHebrewDatesLabel">Display proper Hebrew dates (e.g. ט"ו instead of 15)</span>
+          </label>
+          <a href="https://github.com/Akiva5/hebrew-calendar-events" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: none; font-weight: bold;" data-i18n="githubRepo">GitHub Repository</a>
+        </div>
         <p style="font-size: 0.9em; color: #7f8c8d;" data-i18n="horizonDesc">The number of future years to create calendar events for (default: 3).</p>
       </div>
 
@@ -263,6 +279,9 @@
           typeLabel: 'Type',
           typeBirthday: 'Birthday',
           typeYahrzeit: 'Yahrzeit',
+          gregorianDateLabel: 'Original English Date (Optional)',
+          afterSunsetLabel: 'After Sunset (Before Midnight)',
+          converting: 'Converting...',
           monthLabel: 'Hebrew Month',
           monthNisan: 'Nisan',
           monthIyyar: 'Iyyar',
@@ -279,6 +298,10 @@
           monthAdar2: 'Adar II',
           monthAdar: 'Adar (Regular year)',
           dayLabel: 'Hebrew Day (1-30)',
+          editBtn: 'Edit',
+          updateBtn: 'Update & Sync',
+          updatingBtn: 'Updating...',
+          cancelBtn: 'Cancel',
           addBtn: 'Add & Sync',
           addingBtn: 'Adding...',
           settingsTitle: 'Settings',
@@ -296,8 +319,11 @@
           syncedTo: 'Synced to',
           created: 'created',
           skipped: 'already existed.',
-          attention: 'Some sync items need attention:',\n          attentionDesc: 'Some sync items need attention. Please try again or check entry details.',
-          defaultCalendarName: 'Hebrew Calendar Events'
+          attention: 'Some sync items need attention:',
+          attentionDesc: 'Some sync items need attention. Please try again or check entry details.',
+          defaultCalendarName: 'Hebrew Calendar Events',
+          githubRepo: 'GitHub Repository',
+          properHebrewDatesLabel: 'Display proper Hebrew dates (e.g. ט"ו instead of 15)'
         },
         he: {
           appTitle: 'סנכרון אירועי לוח שנה עברי',
@@ -307,6 +333,9 @@
           typeLabel: 'סוג',
           typeBirthday: 'יום הולדת',
           typeYahrzeit: 'יום זיכרון',
+          gregorianDateLabel: 'תאריך לועזי מקורי (אופציונלי)',
+          afterSunsetLabel: 'אחרי השקיעה (לפני חצות)',
+          converting: 'ממיר...',
           monthLabel: 'חודש עברי',
           monthNisan: 'ניסן',
           monthIyyar: 'אייר',
@@ -323,6 +352,10 @@
           monthAdar2: 'אדר ב\'',
           monthAdar: 'אדר',
           dayLabel: 'יום בחודש (1-30)',
+          editBtn: 'ערוך',
+          updateBtn: 'עדכן וסנכרן',
+          updatingBtn: 'מעדכן...',
+          cancelBtn: 'ביטול',
           addBtn: 'הוסף וסנכרן',
           addingBtn: 'מוסיף...',
           settingsTitle: 'הגדרות',
@@ -340,12 +373,60 @@
           syncedTo: 'סונכרן ל-',
           created: 'נוצרו',
           skipped: 'כבר היו קיימים.',
-          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',\n          attentionDesc: 'חלק מפריטי הסנכרון דורשים תשומת לב. נסה שוב או בדוק את פרטי הרשומה.',
-          defaultCalendarName: 'אירועי לוח שנה עברי'
+          attention: 'חלק מפריטי הסנכרון דורשים תשומת לב:',
+          attentionDesc: 'חלק מפריטי הסנכרון דורשים תשומת לב. נסה שוב או בדוק את פרטי הרשומה.',
+          defaultCalendarName: 'אירועי לוח שנה עברי',
+          githubRepo: 'מאגר GitHub',
+          properHebrewDatesLabel: 'הצג תאריכים עבריים (לדוגמה ט"ו במקום 15)'
         }
       };
 
       let currentLang = localStorage.getItem('lang') || 'en';
+      let editingId = null;
+
+      const hebrewDays = {
+        1: "א'", 2: "ב'", 3: "ג'", 4: "ד'", 5: "ה'", 6: "ו'", 7: "ז'", 8: "ח'", 9: "ט'", 10: "י'",
+        11: "י\"א", 12: "י\"ב", 13: "י\"ג", 14: "י\"ד", 15: "ט\"ו", 16: "ט\"ז", 17: "י\"ז", 18: "י\"ח", 19: "י\"ט",
+        20: "כ'", 21: "כ\"א", 22: "כ\"ב", 23: "כ\"ג", 24: "כ\"ד", 25: "כ\"ה", 26: "כ\"ו", 27: "כ\"ז", 28: "כ\"ח", 29: "כ\"ט", 30: "ל'"
+      };
+
+      function editEntry(entry) {
+        editingId = entry.id;
+        document.getElementById('name').value = entry.name;
+        document.getElementById('type').value = entry.type;
+        document.getElementById('month').value = entry.month;
+        document.getElementById('day').value = entry.day;
+        document.getElementById('gregorianDate').value = entry.gregorianDate || '';
+        document.getElementById('afterSunset').checked = entry.afterSunset === true;
+
+        var btn = document.getElementById('addBtn');
+        btn.innerText = i18n[currentLang].updateBtn;
+
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (!cancelBtn) {
+          cancelBtn = document.createElement('button');
+          cancelBtn.id = 'cancelBtn';
+          cancelBtn.type = 'button';
+          cancelBtn.style.marginLeft = '10px';
+          cancelBtn.style.marginRight = '10px';
+          cancelBtn.onclick = cancelEdit;
+          btn.parentNode.insertBefore(cancelBtn, btn.nextSibling);
+        }
+        cancelBtn.innerText = i18n[currentLang].cancelBtn;
+        cancelBtn.style.display = 'inline-block';
+
+        document.getElementById('addForm').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function cancelEdit() {
+        editingId = null;
+        document.getElementById('addForm').reset();
+        document.getElementById('addBtn').innerText = i18n[currentLang].addBtn;
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+          cancelBtn.style.display = 'none';
+        }
+      }
 
       function setLanguage(lang) {
         currentLang = lang;
@@ -372,10 +453,15 @@
 
         // Re-render UI elements that depend on translations
         loadEntries();
-        if (document.getElementById('addBtn').disabled) {
-           document.getElementById('addBtn').innerText = i18n[currentLang].addingBtn;
+        var addBtn = document.getElementById('addBtn');
+        if (addBtn.disabled) {
+           addBtn.innerText = editingId !== null ? i18n[currentLang].updatingBtn : i18n[currentLang].addingBtn;
         } else {
-           document.getElementById('addBtn').innerText = i18n[currentLang].addBtn;
+           addBtn.innerText = editingId !== null ? i18n[currentLang].updateBtn : i18n[currentLang].addBtn;
+        }
+        var cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+          cancelBtn.innerText = i18n[currentLang].cancelBtn;
         }
         if (document.getElementById('updateHorizonBtn').disabled) {
            document.getElementById('updateHorizonBtn').innerText = i18n[currentLang].savingSettingsBtn;
@@ -398,9 +484,20 @@
             var date = document.createElement('span');
             name.textContent = entry.name + ' (' + (entry.type === 'Birthday' ? i18n[currentLang].typeBirthday : i18n[currentLang].typeYahrzeit) + ')';
             let m = 'month' + entry.month.replace(/[^a-zA-Z]/g, '').replace('AdarII', 'Adar2').replace('AdarI', 'Adar1');
-            date.textContent = entry.day + ' ' + (i18n[currentLang][m] || entry.month);
+            var properHebrewEnabled = localStorage.getItem('properHebrewDates') === 'true';
+            var dayText = properHebrewEnabled && hebrewDays[entry.day] ? hebrewDays[entry.day] : entry.day;
+            date.textContent = dayText + ' ' + (i18n[currentLang][m] || entry.month) + (entry.gregorianDate ? ' (' + entry.gregorianDate + (entry.afterSunset ? ', ' + (currentLang === 'he' ? 'אחרי השקיעה' : 'after sunset') : '') + ')' : '');
             li.appendChild(name);
             li.appendChild(date);
+
+            var editBtn = document.createElement('button');
+            editBtn.style.marginLeft = '10px';
+            editBtn.style.marginRight = '10px';
+            editBtn.style.padding = '2px 8px';
+            editBtn.textContent = i18n[currentLang].editBtn;
+            editBtn.onclick = function() { editEntry(entry); };
+            li.appendChild(editBtn);
+
             list.appendChild(li);
           });
         }).getEntries();
@@ -436,30 +533,87 @@
         status.innerText = message;
       }
 
+
+
+      function updateHebrewDateFromGregorian() {
+        var dateVal = document.getElementById('gregorianDate').value;
+        var afterSunset = document.getElementById('afterSunset').checked;
+        if (!dateVal) return;
+
+        var monthEl = document.getElementById('month');
+        var dayEl = document.getElementById('day');
+
+        monthEl.disabled = true;
+        dayEl.disabled = true;
+
+        google.script.run.withSuccessHandler(function(result) {
+          monthEl.disabled = false;
+          dayEl.disabled = false;
+
+          if (result && result.hebrewMonth && result.hebrewDay) {
+            // Set the day
+            dayEl.value = result.hebrewDay;
+
+            // Try to match the month
+            var hm = result.hebrewMonth;
+
+            // normalize some hebcal names to match our options
+            if (hm === "Adar I") hm = "Adar I";
+            if (hm === "Adar II") hm = "Adar II";
+            if (hm === "Sh'vat") hm = "Sh'vat";
+
+            var options = monthEl.options;
+            for (var i = 0; i < options.length; i++) {
+              if (options[i].value === hm || options[i].value.replace(/[^a-zA-Z]/g, '') === hm.replace(/[^a-zA-Z]/g, '')) {
+                monthEl.selectedIndex = i;
+                break;
+              }
+            }
+          }
+        }).withFailureHandler(function(err) {
+          monthEl.disabled = false;
+          dayEl.disabled = false;
+          renderError("Failed to convert date: " + err.message);
+        }).convertGregorianToHebrew(dateVal, afterSunset);
+      }
+
+      document.getElementById('gregorianDate').addEventListener('change', updateHebrewDateFromGregorian);
+      document.getElementById('afterSunset').addEventListener('change', updateHebrewDateFromGregorian);
+
+
       document.getElementById('addForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var btn = document.getElementById('addBtn');
         btn.disabled = true;
-        btn.innerText = i18n[currentLang].addingBtn;
+        btn.innerText = editingId !== null ? i18n[currentLang].updatingBtn : i18n[currentLang].addingBtn;
 
         var entry = {
           name: document.getElementById('name').value,
           type: document.getElementById('type').value,
           month: document.getElementById('month').value,
-          day: document.getElementById('day').value
+          day: document.getElementById('day').value,
+          gregorianDate: document.getElementById('gregorianDate').value,
+          afterSunset: document.getElementById('afterSunset').checked
         };
 
-        google.script.run.withSuccessHandler(function(result) {
-          document.getElementById('addForm').reset();
+        var successHandler = function(result) {
+          cancelEdit();
           btn.disabled = false;
-          btn.innerText = i18n[currentLang].addBtn;
           renderSyncResult(result, i18n[currentLang].entrySaved);
           loadEntries();
-        }).withFailureHandler(function(err) {
+        };
+
+        var failureHandler = function(err) {
           btn.disabled = false;
-          btn.innerText = i18n[currentLang].addBtn;
+          btn.innerText = editingId !== null ? i18n[currentLang].updateBtn : i18n[currentLang].addBtn;
           renderError(i18n[currentLang].entryNotSaved + (currentLang === 'he' ? '' : err.message));
-        }).addEntry(entry);
+        };
+
+        if (editingId !== null) {
+          google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).updateEntry(editingId, entry);
+        } else {
+          google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).addEntry(entry);
+        }
       });
 
       document.getElementById('updateHorizonBtn').addEventListener('click', function() {
@@ -483,6 +637,13 @@
       document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
       document.getElementById('langHe').addEventListener('click', () => setLanguage('he'));
       setLanguage(currentLang);
+
+      var properHebrewToggle = document.getElementById('properHebrewDates');
+      properHebrewToggle.checked = localStorage.getItem('properHebrewDates') === 'true';
+      properHebrewToggle.addEventListener('change', function(e) {
+        localStorage.setItem('properHebrewDates', e.target.checked);
+        loadEntries();
+      });
 
       // Init
       loadSettings();

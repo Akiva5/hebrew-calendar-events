@@ -57,6 +57,19 @@ function addEntry(entry) {
 }
 
 /**
+ * Update an existing entry from UI and trigger sync.
+ */
+function updateEntry(id, entry) {
+  var validation = Sync.validateEntry(entry);
+  if (validation.errors.length > 0) {
+    throw new Error(validation.errors.join(' '));
+  }
+
+  Storage.updateEntry(id, entry);
+  return syncHebrewDates();
+}
+
+/**
  * Main function to sync the Hebrew dates to Google Calendar
  */
 function syncHebrewDates() {
@@ -81,4 +94,17 @@ function updateSyncHorizon(years) {
  */
 function getSyncHorizon() {
   return Storage.getSyncHorizon();
+}
+
+
+/**
+ * Convert a Gregorian date to Hebrew month and day.
+ * Called from UI.
+ */
+function convertGregorianToHebrew(dateString, afterSunset) {
+  var result = Hebcal.getHebrewDateFromGregorian(dateString, afterSunset);
+  if (result.error) {
+    throw new Error(result.error);
+  }
+  return result;
 }
